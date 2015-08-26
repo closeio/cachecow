@@ -16,7 +16,7 @@ class MongoCacheCow(CacheCow):
     >>> cache = MongoCache(initialized_redis_client)
     >>> bp = cache.get(BlogPost, 'title', 'First Title')  # fetches from Mongo (querying by { title: 'First Title' }) and caches it in Redis
     >>> bp = cache.get(BlogPost, 'title', 'First Title')  # fetches from Redis
-    >>> cache.invalidate(bp.__class__, 'title', bp.title)
+    >>> cache.invalidate(BlogPost, 'title', 'First Title')  # invalidates the cache
     >>> bp = cache.get(BlogPost, 'title', 'First Title')  # fetches from Mongo (querying by { title: 'First Title' }) and caches it in Redis
     """
 
