@@ -45,10 +45,7 @@ class MongoCacheCow(CacheCow):
         return cls._from_son(bson.json_util.loads(cached_data))
 
     def get_keys(self, cls, id_field, id_val):
-        """
-        Get key names for the cache key (where the data is gonna be stored),
-        and the flag key (where the cache flag is going to be set).
-        """
+        # store the data in redis under cache/flag:collection_name$id_field_name$id_value
         key = xxhash.xxh64(b'%s$%s$%s' % (cls._get_collection_name(), id_field, id_val)).hexdigest()
         return 'cache:' + key, 'flag:' + key
 ```
