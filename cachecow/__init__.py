@@ -50,7 +50,7 @@ class CacheCow:
             end
         """)
 
-    def _get_keys(self, cls, id_field, id_val):
+    def get_keys(self, cls, id_field, id_val):
         """
         Get key names for the cache key (where the object's data is going to
         be stored), and the flag key (where the cache flag is going to be set).
@@ -64,7 +64,7 @@ class CacheCow:
         via the `fetch` method and cached in Redis (unless the cache flag got
         invalidated in the meantime).
         """
-        cache_key, flag_key = self._get_keys(cls, id_field, id_val)
+        cache_key, flag_key = self.get_keys(cls, id_field, id_val)
 
         result = self.get_cached_or_set_flag(keys=(cache_key, flag_key))
 
@@ -107,11 +107,10 @@ class CacheCow:
         Invalidate the cache for a given Mongo object by deleting the cached
         data and the cache flag.
         """
-        cache_key, flag_key = self._get_keys(cls, id_field, id_val)
+        cache_key, flag_key = self.get_keys(cls, id_field, id_val)
 
         pipeline = self.redis.pipeline()
         pipeline.delete(cache_key)
         pipeline.delete(flag_key)
         pipeline.execute()
-
 
