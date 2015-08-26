@@ -1,26 +1,7 @@
-import datetime
-import decimal
-import json
+import bson
 import xxhash
 
-from bson import ObjectId, DBRef
-
 from cachecow import CacheCow
-
-
-class MongoEncoder(json.JSONEncoder):
-    def default(self, value, **kwargs):
-        if isinstance(value, ObjectId):
-            return unicode(value)
-        elif isinstance(value, DBRef):
-            return value.id
-        if isinstance(value, datetime.datetime):
-            return value.isoformat()
-        if isinstance(value, datetime.date):
-            return value.strftime("%Y-%m-%d")
-        if isinstance(value, decimal.Decimal):
-            return str(value)
-        return super(MongoEncoder, self).default(value, **kwargs)
 
 
 class MongoCacheCow(CacheCow):
@@ -43,10 +24,10 @@ class MongoCacheCow(CacheCow):
         return cls.objects.get(**{ id_field: id_val })
 
     def serialize(self, obj):
-        return json.dumps(obj._db_data, cls=MongoEncoder)
+        return bson.json_util.dumps(obj._db_data)
 
     def deserialize(self, cls, cached_data):
-        return cls._from_son(json.loads(cached_data))
+        return cls._from_son(bson.json_util.loads(cached_data))
 
     def _get_keys(self, cls, id_field, id_val):
         """
