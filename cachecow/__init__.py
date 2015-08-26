@@ -77,7 +77,15 @@ class CacheCow:
 
         # if cached data was found, deserialize and return it
         if cached_data is not None:
-            return self.deserialize(cls, cached_data)
+            deserialized = self.deserialize(cls, cached_data)
+
+            # verify that the cached object matches our expectations
+            # if not, return from the persistant storage instead.
+            if self.verify(cls, id_field, id_val, deserialized):
+                return deserialized
+            else:
+                # invalidate the cache if it didn't pass verification
+                self.invalidate(cls, id_field, id_val)
 
         obj = self.fetch(cls, id_field, id_val)
 
@@ -89,6 +97,13 @@ class CacheCow:
             self.cache(keys=(cache_key, flag_key), args=(obj_serialized,))
 
         return obj
+
+    def verify(self, cls, id_field, id_val, obj_from_cache):
+        """
+        Verify that the object we retrieved from cache matches the requested
+        `id_field`/`id_val`.
+        """
+        return getattr(obj_from_cache, id_field) == id_val
 
     def serialize(self, obj):
         """Serialize the object before caching it."""

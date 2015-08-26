@@ -96,6 +96,35 @@ class CacheCowTestCase(unittest.TestCase):
             self.mongo_cache.get(self.BlogPost, 'title', 'First Title')
             self.assertEqual(q, 3)
 
+    def test_collision(self):
+        """
+        Make sure that the right object is returned, even in case of a hash
+        collision.
+        """
+        faux_obj = self.BlogPost.objects.get(title='Second Title')
+        with query_counter() as q:
+            obj1 = self.mongo_cache.get(self.BlogPost, 'title', 'First Title')
+
+            # manually override the data in First Post's cache_key to point to
+            # the Second Title's object, simulating a collision
+            cache_key, flag_key = self.mongo_cache.get_keys(
+                self.BlogPost,'title', 'First Title'
+            )
+            self.mongo_cache.redis.set(
+                cache_key,
+                self.mongo_cache.serialize(faux_obj)
+            )
+
+            obj2 = self.mongo_cache.get(self.BlogPost, 'title', 'First Title') # this should return the valid obj and invalidate the cache
+            obj3 = self.mongo_cache.get(self.BlogPost, 'title', 'First Title') # this should cache the right obj
+            obj4 = self.mongo_cache.get(self.BlogPost, 'title', 'First Title') # this should already have the valid obj cached
+
+            self.assertEqual(obj1, obj2)
+            self.assertEqual(obj1, obj3)
+            self.assertEqual(obj1, obj4)
+
+            self.assertEqual(q, 3) # 1st query + query after a cache collision + query that cached the right obj
+
 
 if __name__ == '__main__':
     unittest.main()
