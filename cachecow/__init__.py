@@ -1,11 +1,15 @@
-import json
-import xxhash
-
-from flask.ext.mongorest.utils import MongoEncoder  # TODO how to get rid of this?
-
-
 class CacheCow:
-    """A simple class to cache individual objects in redis."""
+    """
+    A simple class to cache individual objects in redis.
+
+    It should be subclassed to handle a specific object type you want to
+    cache. To store an object, CacheCow needs its retrieval class (i.e.
+    a class you'll be able to use to retrieve the data from its primary
+    storage), a field name the object can be identified by and a value of
+    that field. For example, if you want to cache MongoEngine's documents,
+    `cls` would be a Document class, `id_field` could be the 'id' field and
+    `id_val` would correspond to the primary key of the doc you want to cache.
+    """
 
     def __init__(self, redis):
         """Initialize CacheCow with a redis client."""
@@ -46,21 +50,21 @@ class CacheCow:
             end
         """)
 
-    def _get_keys(self, DocClass, id_field, id_val):
+    def _get_keys(self, cls, id_field, id_val):
         """
         Get key names for the cache key (where the object's data is going to
         be stored), and the flag key (where the cache flag is going to be set).
         """
         raise NotImplementedError
 
-    def get(self, DocClass, id_field, id_val):
+    def get(self, cls, id_field, id_val):
         """
         Retrieve an object which `id_field` matches `id_val`. If it exists in
         the cache, it will be fetched from Redis. If not, it will be fetched
         via the `fetch` method and cached in Redis (unless the cache flag got
         invalidated in the meantime).
         """
-        cache_key, flag_key = self._get_keys(DocClass, id_field, id_val)
+        cache_key, flag_key = self._get_keys(cls, id_field, id_val)
 
         result = self.get_cached_or_set_flag(keys=(cache_key, flag_key))
 
@@ -73,9 +77,9 @@ class CacheCow:
 
         # if cached data was found, deserialize and return it
         if cached_data is not None:
-            return self.deserialize(DocClass, cached_data)
+            return self.deserialize(cls, cached_data)
 
-        obj = self.fetch(DocClass, id_field, id_val)
+        obj = self.fetch(cls, id_field, id_val)
 
         # If the flag wasn't previously set, then we set it and we're responsible
         # for putting the item in the cache. Do this unless the cache got
@@ -90,44 +94,24 @@ class CacheCow:
         """Serialize the object before caching it."""
         raise NotImplementedError
 
-    def deserialize(self, DocClass, cached_data):
+    def deserialize(self, cls, cached_data):
         """Fetch the data that was retrieved from the cache."""
         raise NotImplementedError
 
-    def fetch(self, DocClass, id_field, id_val):
+    def fetch(self, cls, id_field, id_val):
         """Fetch the data from the original source."""
         raise NotImplementedError
 
-    def invalidate(self, DocClass, id_field, id_val):
+    def invalidate(self, cls, id_field, id_val):
         """
         Invalidate the cache for a given Mongo object by deleting the cached
         data and the cache flag.
         """
-        cache_key, flag_key = self._get_keys(DocClass, id_field, id_val)
+        cache_key, flag_key = self._get_keys(cls, id_field, id_val)
 
         pipeline = self.redis.pipeline()
         pipeline.delete(cache_key)
         pipeline.delete(flag_key)
         pipeline.execute()
 
-
-class MongoCacheCow:
-    """CacheCow for MongoEngine."""
-
-    def fetch(self, DocClass, id_field, id_val):
-        return DocClass.objects.get(**{ id_field: id_val })
-
-    def serialize(self, obj):
-        return json.dumps(obj._db_data, cls=MongoEncoder)
-
-    def deserialize(self, DocClass, cached_data):
-        return DocClass._from_son(json.loads(cached_data))
-
-    def _get_keys(self, DocClass, id_field, id_val):
-        """
-        Get key names for the cache key (where the data is gonna be stored),
-        and the flag key (where the cache flag is going to be set).
-        """
-        key = xxhash.xxh32(b'%s$%s$%s' % (DocClass._get_collection_name(), id_field, id_val)).hexdigest()
-        return 'cache:' + key, 'flag:' + key
 
