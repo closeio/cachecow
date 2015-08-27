@@ -8,7 +8,8 @@ It provides a basic scaffolding class (`CacheCow`) you can use to build your own
 
 * It's generic enough that you can easily extend it to work on top of any persistent storage.
 * It abstracts out caching and cache invalidation for you.
-* It ensures performance and consistency of your cache.
+* It ensures consistency of your cache.
+* It promotes performance (minimizing the number of roundtrips to Redis).
 
 ### How does CacheCow keep the data consistent?
 
