@@ -17,10 +17,6 @@ setup(
     test_suite='tests',
     zip_safe=True,
     platforms='any',
-    setup_requires=[
-        'redis',
-        'xxhash',
-    ],
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
