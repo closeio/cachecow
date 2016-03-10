@@ -2,27 +2,27 @@ from setuptools import setup
 
 setup(
     name='cachecow',
-    version='0.1.1',
+    version='0.1.2',
     url='http://github.com/closeio/cachecow',
-    license='BSD',
+    license='MIT',
     author='Stefan Wojcik',
-    author_email='wojcikstefan@gmail.com',
+    author_email='engineering@close.io',
     maintainer='Stefan Wojcik',
-    maintainer_email='wojcikstefan@gmail.com',
-    description='Simple module for caching objects in Redis',
-    long_description=__doc__,
+    maintainer_email='engineering@close.io',
+    description='Fast and simple scaffolding for caching objects in Redis',
+    test_suite='tests',
+    tests_require=['mongoengine', 'redis'],
     packages=[
         'cachecow',
     ],
-    test_suite='tests',
-    zip_safe=True,
     platforms='any',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Programming Language :: Python',
         'Topic :: Software Development :: Libraries :: Python Modules'
-    ]
+    ],
+    zip_safe=True
 )
