@@ -45,7 +45,7 @@ What you need to do:
 
 Here's an implementation of a simple MongoEngine document cache (available under `cachecow.mongo`), along with its usage:
 
-```
+```py
 class MongoCacheCow(CacheCow):
     """
     CacheCow for MongoEngine.
