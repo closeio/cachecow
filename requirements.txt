@@ -1,4 +1,4 @@
--e git+ssh://git@github.com/closeio/mongoengine.git#egg=mongoengine-dev
-pymongo==2.8
-redis==2.10.3
+-e git+ssh://git@github.com/closeio/mongoengine.git@dcb75720445ea434506efa32d3aee596ce026426#egg=mongoengine
+pymongo==2.9.5
+redis==2.10.6
 xxhash==0.4.3
