@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='cachecow',
-    version='0.1.2',
+    version='0.1.3',
     url='http://github.com/closeio/cachecow',
     license='MIT',
     author='Stefan Wojcik',
